@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quiz</title>
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <link rel="stylesheet" href="css/quiz.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Làm kiểm tra</h1>
+      <div id="quiz"></div>
+      <button onclick="window.location.href='index.html'">Quay lại</button>
+    </div>
+
+    <script>
+      let vocab = JSON.parse(localStorage.getItem("vocab")) || {};
+      let selectedCat = localStorage.getItem("quizCategory") || "All";
+
+      function startQuiz() {
+        let questions = [];
+        if (selectedCat === "All") {
+          for (const c in vocab) {
+            questions = questions.concat(
+              vocab[c].map((item) => ({ ...item, cat: c }))
+            );
+          }
+        } else {
+          questions = vocab[selectedCat]
+            ? vocab[selectedCat].map((item) => ({ ...item, cat: selectedCat }))
+            : [];
+        }
+
+        if (questions.length === 0) {
+          document.getElementById("quiz").innerHTML =
+            "<p>Không có từ vựng để kiểm tra!</p>";
+          return;
+        }
+
+        const quizDiv = document.getElementById("quiz");
+        quizDiv.innerHTML = `
+        <form id="quizForm">
+          ${questions
+            .map(
+              (q, i) => `
+            <div class="question">
+              <label><b>${i + 1}. ${q.en}</b> (${q.cat})</label><br/>
+              <input type="text" name="q${i}" placeholder="Nghĩa tiếng Việt"/>
+              <input type="hidden" name="answer${i}" value="${q.vi}"/>
+            </div>`
+            )
+            .join("")}
+          <button type="submit">Nộp bài</button>
+        </form>
+      `;
+
+        document.getElementById("quizForm").onsubmit = function (e) {
+          e.preventDefault();
+          gradeQuiz(questions);
+        };
+      }
+
+      function gradeQuiz(questions) {
+        let correct = 0;
+        let details = [];
+        const form = document.getElementById("quizForm");
+        questions.forEach((q, i) => {
+          const userAns = form[`q${i}`].value.trim().toLowerCase();
+          const rightAns = q.vi.trim().toLowerCase();
+          if (userAns === rightAns) {
+            correct++;
+            details.push(`<p class="correct">✔ ${q.en} – ${q.vi}</p>`);
+          } else {
+            details.push(
+              `<p class="wrong">✘ ${q.en} – Bạn trả lời: "${
+                form[`q${i}`].value
+              }" | Đúng: "${q.vi}"</p>`
+            );
+          }
+        });
+
+        const total = questions.length;
+        const score = ((correct * 10) / total).toFixed(2);
+        document.getElementById("quiz").innerHTML += `
+        <div class="result">
+          <h3>Kết quả</h3>
+          <p>Điểm: ${score}/10</p>
+          <p>Số câu đúng: ${correct}</p>
+          <p>Số câu sai: ${total - correct}</p>
+          <div>${details.join("")}</div>
+        </div>
+      `;
+      }
+
+      startQuiz();
+    </script>
+  </body>
+</html>
