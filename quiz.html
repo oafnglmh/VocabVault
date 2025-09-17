@@ -45,7 +45,7 @@
               (q, i) => `
             <div class="question">
               <label><b>${i + 1}. ${q.en}</b> (${q.cat})</label><br/>
-              <input type="text" name="q${i}" placeholder="Nghĩa tiếng Việt"/>
+              <input type="text" name="q${i}" autocomplete="false" placeholder="Nghĩa tiếng Việt"/>
               <input type="hidden" name="answer${i}" value="${q.vi}"/>
             </div>`
             )
