@@ -5,6 +5,7 @@
     <title>Vocabulary Manager</title>
     <link rel="icon" type="image/png" href="images/logo2.png" />
     <link rel="stylesheet" href="css/index.css" />
+    <style></style>
   </head>
   <body>
     <div class="container">
@@ -13,7 +14,7 @@
         <input
           type="text"
           id="wordInput"
-          autocomplete="false"
+          autocomplete="off"
           placeholder="English word..."
         />
         <input
@@ -102,7 +103,7 @@
           saveData();
           enInput.value = "";
           viInput.value = "";
-          showMsg("Đã lưu từ vựng!");
+          showMsg("Đã lưu từ vựng! 🎉");
           render();
         }
       }

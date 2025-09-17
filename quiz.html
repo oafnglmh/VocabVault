@@ -1,98 +1,220 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Quiz</title>
+    <title>Quiz - Kiểm tra từ vựng</title>
     <link rel="icon" type="image/png" href="images/logo2.png" />
     <link rel="stylesheet" href="css/quiz.css" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
   </head>
   <body>
     <div class="container">
-      <h1>Làm kiểm tra</h1>
-      <div id="quiz"></div>
-      <button onclick="window.location.href='index.html'">Quay lại</button>
+      <h1>Kiểm tra từ vựng</h1>
+
+      <div class="control">
+        <div class="select-wrap">
+          <label for="modeSelect">Chế độ</label>
+          <select id="modeSelect" aria-label="Chọn chế độ">
+            <option value="quiz">Chế độ 1: Quiz nhiều lựa chọn</option>
+            <option value="input">Chế độ 2: Điền từ tiếng Anh</option>
+          </select>
+        </div>
+
+        <button id="startBtn" class="btn primary" onclick="startQuiz()">
+          Bắt đầu
+        </button>
+      </div>
+
+      <div id="emptyMsg" class="empty" style="display: none">
+        Không có từ vựng để kiểm tra. Hãy thêm từ ở trang chính nhé
+      </div>
+
+      <div id="quizArea" class="quiz-area" style="display: none">
+        <div class="card question-card">
+          <div id="question" class="question">—</div>
+          <div id="hint" class="hint"></div>
+        </div>
+
+        <div id="options" class="options" aria-live="polite"></div>
+
+        <div id="result" class="result" aria-live="polite"></div>
+
+        <div class="bottom-controls">
+          <button id="nextBtn" class="btn secondary" onclick="nextQuestion()">
+            Câu tiếp theo
+          </button>
+          <button class="btn ghost" onclick="window.location.href='index.html'">
+            Quay lại
+          </button>
+        </div>
+      </div>
     </div>
 
     <script>
       let vocab = JSON.parse(localStorage.getItem("vocab")) || {};
-      let selectedCat = localStorage.getItem("quizCategory") || "All";
+      let quizCategory = localStorage.getItem("quizCategory") || "All";
+      let words = [];
+      let currentIndex = 0;
+      let correctCount = 0;
+      let mode = "quiz";
+
+      const quizArea = document.getElementById("quizArea");
+      const questionDiv = document.getElementById("question");
+      const optionsDiv = document.getElementById("options");
+      const resultDiv = document.getElementById("result");
+      const nextBtn = document.getElementById("nextBtn");
+      const emptyMsg = document.getElementById("emptyMsg");
 
       function startQuiz() {
-        let questions = [];
-        if (selectedCat === "All") {
-          for (const c in vocab) {
-            questions = questions.concat(
-              vocab[c].map((item) => ({ ...item, cat: c }))
-            );
-          }
+        mode = document.getElementById("modeSelect").value;
+        words = [];
+        correctCount = 0;
+        if (quizCategory === "All") {
+          for (const cat in vocab)
+            words = words.concat(vocab[cat].map((i) => ({ ...i, cat })));
         } else {
-          questions = vocab[selectedCat]
-            ? vocab[selectedCat].map((item) => ({ ...item, cat: selectedCat }))
-            : [];
+          words = (vocab[quizCategory] || []).map((i) => ({
+            ...i,
+            cat: quizCategory,
+          }));
         }
 
-        if (questions.length === 0) {
-          document.getElementById("quiz").innerHTML =
-            "<p>Không có từ vựng để kiểm tra!</p>";
+        if (!words.length) {
+          quizArea.style.display = "none";
+          emptyMsg.style.display = "block";
           return;
+        } else {
+          emptyMsg.style.display = "none";
         }
 
-        const quizDiv = document.getElementById("quiz");
-        quizDiv.innerHTML = `
-        <form id="quizForm">
-          ${questions
-            .map(
-              (q, i) => `
-            <div class="question">
-              <label><b>${i + 1}. ${q.en}</b> (${q.cat})</label><br/>
-              <input type="text" name="q${i}" autocomplete="false" placeholder="Nghĩa tiếng Việt"/>
-              <input type="hidden" name="answer${i}" value="${q.vi}"/>
-            </div>`
-            )
-            .join("")}
-          <button type="submit">Nộp bài</button>
-        </form>
-      `;
-
-        document.getElementById("quizForm").onsubmit = function (e) {
-          e.preventDefault();
-          gradeQuiz(questions);
-        };
+        shuffle(words);
+        currentIndex = 0;
+        quizArea.style.display = "block";
+        showQuestion();
       }
 
-      function gradeQuiz(questions) {
-        let correct = 0;
-        let details = [];
-        const form = document.getElementById("quizForm");
-        questions.forEach((q, i) => {
-          const userAns = form[`q${i}`].value.trim().toLowerCase();
-          const rightAns = q.vi.trim().toLowerCase();
-          if (userAns === rightAns) {
-            correct++;
-            details.push(`<p class="correct">✔ ${q.en} – ${q.vi}</p>`);
-          } else {
-            details.push(
-              `<p class="wrong">✘ ${q.en} – Bạn trả lời: "${
-                form[`q${i}`].value
-              }" | Đúng: "${q.vi}"</p>`
-            );
+      function showQuestion() {
+        resultDiv.textContent = "";
+        optionsDiv.innerHTML = "";
+        nextBtn.style.display = "none";
+
+        const q = words[currentIndex];
+        questionDiv.textContent = "";
+        document.getElementById("hint")?.remove();
+
+        if (!q) return;
+
+        if (mode === "quiz") {
+          questionDiv.textContent = `Nghĩa: ${q.vi}  — (${q.cat || ""})`;
+          let answers = [q.en];
+          const maxChoices = Math.min(4, words.length);
+          while (answers.length < maxChoices) {
+            const rand = words[Math.floor(Math.random() * words.length)].en;
+            if (!answers.includes(rand)) answers.push(rand);
           }
-        });
+          shuffle(answers);
 
-        const total = questions.length;
-        const score = ((correct * 10) / total).toFixed(2);
-        document.getElementById("quiz").innerHTML += `
-        <div class="result">
-          <h3>Kết quả</h3>
-          <p>Điểm: ${score}/10</p>
-          <p>Số câu đúng: ${correct}</p>
-          <p>Số câu sai: ${total - correct}</p>
-          <div>${details.join("")}</div>
-        </div>
-      `;
+          answers.forEach((a) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.textContent = a;
+            btn.onclick = () => handleChoice(a, q, btn);
+            optionsDiv.appendChild(btn);
+          });
+        } else {
+          questionDiv.textContent = `Hãy nhập tiếng Anh cho: ${q.vi}  — (${
+            q.cat || ""
+          })`;
+          const wrap = document.createElement("div");
+          wrap.className = "input-wrap";
+          const input = document.createElement("input");
+          input.type = "text";
+          input.placeholder = "Nhập từ tiếng Anh...";
+          input.className = "text-input";
+          input.autocomplete = "off";
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") checkTextAnswer(input, q);
+          });
+
+          const checkBtn = document.createElement("button");
+          checkBtn.className = "option-btn";
+          checkBtn.textContent = "Kiểm tra";
+          checkBtn.onclick = () => checkTextAnswer(input, q);
+
+          wrap.appendChild(input);
+          wrap.appendChild(checkBtn);
+          optionsDiv.appendChild(wrap);
+        }
+
+        questionDiv.classList.remove("pop");
+        void questionDiv.offsetWidth;
+        questionDiv.classList.add("pop");
       }
 
-      startQuiz();
+      function handleChoice(choice, q, btn) {
+        const btns = optionsDiv.querySelectorAll("button.option-btn");
+        btns.forEach((b) => (b.disabled = true));
+
+        if (choice === q.en) {
+          correctCount++;
+          btn.classList.add("correct");
+          resultDiv.innerHTML = `<span class="emoji">✅</span> Chính xác!`;
+        } else {
+          btn.classList.add("wrong");
+          btns.forEach((b) => {
+            if (b.textContent === q.en) b.classList.add("correct");
+          });
+          resultDiv.innerHTML = `<span class="emoji">❌</span> Sai — Đúng: <b>${q.en}</b>`;
+        }
+        nextBtn.style.display = "inline-block";
+        resultDiv.classList.remove("pop");
+        void resultDiv.offsetWidth;
+        resultDiv.classList.add("pop");
+      }
+
+      function checkTextAnswer(input, q) {
+        const answer = input.value.trim();
+        if (answer === "") return;
+        input.disabled = true;
+        const isCorrect = answer.toLowerCase() === q.en.toLowerCase();
+        if (isCorrect) {
+          input.classList.add("correct-input");
+          resultDiv.innerHTML = `<span class="emoji">✅</span> Chính xác!`;
+          correctCount++;
+        } else {
+          input.classList.add("wrong-input");
+          resultDiv.innerHTML = `<span class="emoji">❌</span> Sai — Đúng: <b>${q.en}</b>`;
+        }
+        nextBtn.style.display = "inline-block";
+        resultDiv.classList.remove("pop");
+        void resultDiv.offsetWidth;
+        resultDiv.classList.add("pop");
+      }
+      function nextQuestion() {
+        currentIndex++;
+        if (currentIndex >= words.length) {
+          const total = words.length;
+          const scorePerQuestion = 10 / total;
+          const finalScore = (correctCount * scorePerQuestion).toFixed(2);
+
+          questionDiv.textContent = "Hết câu hỏi!";
+          optionsDiv.innerHTML = "";
+          resultDiv.innerHTML = `
+            Bạn trả lời đúng <b>${correctCount} / ${total}câu </b><br/>
+            Điểm số: ${finalScore} / 10
+          `;
+          nextBtn.style.display = "none";
+        } else {
+          showQuestion();
+        }
+      }
+
+      function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      }
     </script>
   </body>
 </html>
