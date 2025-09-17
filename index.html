@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vocabulary Manager</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(135deg, #74abe2, #5563de);
+        margin: 0;
+        padding: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+      }
+      .container {
+        background: #fff;
+        padding: 30px 40px;
+        border-radius: 16px;
+        width: 650px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 25px;
+      }
+      .form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      input,
+      select {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #ccc;
+        border-radius: 10px;
+        font-size: 15px;
+        outline: none;
+        transition: 0.3s;
+      }
+      input:focus,
+      select:focus {
+        border-color: #5563de;
+        box-shadow: 0 0 6px rgba(85, 99, 222, 0.5);
+      }
+      button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 10px;
+        background: #5563de;
+        color: white;
+        font-size: 15px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      button:hover {
+        background: #4051c8;
+      }
+      .msg {
+        text-align: center;
+        color: green;
+        font-weight: 500;
+        margin-bottom: 15px;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      .msg.show {
+        opacity: 1;
+      }
+      .stats {
+        margin-top: 10px;
+        font-weight: bold;
+        color: #444;
+      }
+      .category {
+        margin-top: 20px;
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 10px;
+      }
+      .category h3 {
+        margin: 0;
+        cursor: pointer;
+        color: #333;
+        font-size: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      ul {
+        list-style: none;
+        margin: 10px 0 0;
+        padding: 0;
+        display: none;
+      }
+      li {
+        padding: 8px 12px;
+        margin-bottom: 6px;
+        background: #fff;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .delete-btn {
+        background: crimson;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 4px 8px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Vocabulary Manager</h1>
+      <div class="form">
+        <input type="text" id="wordInput" placeholder="English word..." />
+        <input
+          type="text"
+          id="meaningInput"
+          placeholder="Vietnamese meaning..."
+        />
+        <select id="categorySelect">
+          <option value="General">General</option>
+          <option value="Animals">Animals</option>
+          <option value="Food">Food</option>
+          <option value="Technology">Technology</option>
+          <option value="Position">Position</option>
+          <option value="Custom">Custom</option>
+        </select>
+        <button onclick="addWord()">Lưu</button>
+      </div>
+      <div id="message" class="msg">Đã lưu từ vựng!</div>
+      <div class="stats" id="stats">Tổng số từ: 0</div>
+      <div id="categories"></div>
+    </div>
+
+    <script>
+      let vocab = JSON.parse(localStorage.getItem("vocab")) || {};
+
+      function saveData() {
+        localStorage.setItem("vocab", JSON.stringify(vocab));
+      }
+
+      function render() {
+        const categoriesDiv = document.getElementById("categories");
+        const statsDiv = document.getElementById("stats");
+        categoriesDiv.innerHTML = "";
+
+        let total = 0;
+
+        for (const cat in vocab) {
+          total += vocab[cat].length;
+          const catDiv = document.createElement("div");
+          catDiv.className = "category";
+          catDiv.innerHTML = `
+          <h3 onclick="toggleList(this)">
+            ${cat} <span>(${vocab[cat].length})</span>
+          </h3>
+          <ul>
+            ${vocab[cat]
+              .map(
+                (item, idx) => `
+              <li>
+                <span><b>${item.en}</b> – ${item.vi}</span>
+                <button class="delete-btn" onclick="deleteWord('${cat}', ${idx})">Xóa</button>
+              </li>`
+              )
+              .join("")}
+          </ul>
+        `;
+          categoriesDiv.appendChild(catDiv);
+        }
+
+        statsDiv.textContent = "Tổng số từ: " + total;
+      }
+
+      function addWord() {
+        const enInput = document.getElementById("wordInput");
+        const viInput = document.getElementById("meaningInput");
+        const category = document.getElementById("categorySelect").value;
+        const enWord = enInput.value.trim();
+        const viWord = viInput.value.trim();
+
+        if (enWord && viWord) {
+          if (!vocab[category]) vocab[category] = [];
+          vocab[category].push({ en: enWord, vi: viWord });
+          saveData();
+          enInput.value = "";
+          viInput.value = "";
+          showMsg("Đã lưu từ vựng!");
+          render();
+        }
+      }
+
+      function deleteWord(cat, index) {
+        vocab[cat].splice(index, 1);
+        if (vocab[cat].length === 0) delete vocab[cat];
+        saveData();
+        render();
+      }
+
+      function showMsg(text) {
+        const msg = document.getElementById("message");
+        msg.textContent = text;
+        msg.classList.add("show");
+        setTimeout(() => msg.classList.remove("show"), 1500);
+      }
+
+      function toggleList(h3) {
+        const ul = h3.nextElementSibling;
+        ul.style.display = ul.style.display === "block" ? "none" : "block";
+      }
+
+      render();
+    </script>
+  </body>
+</html>
