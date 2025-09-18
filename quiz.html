@@ -17,6 +17,7 @@
           <select id="modeSelect" aria-label="Chọn chế độ">
             <option value="quiz">Chế độ 1: Quiz nhiều lựa chọn</option>
             <option value="input">Chế độ 2: Điền từ tiếng Anh</option>
+            <option value="flashcard">Chế độ 3: Flashcard</option>
           </select>
         </div>
 
@@ -57,7 +58,7 @@
       let currentIndex = 0;
       let correctCount = 0;
       let mode = "quiz";
-
+      let checkMode = 0;
       const quizArea = document.getElementById("quizArea");
       const questionDiv = document.getElementById("question");
       const optionsDiv = document.getElementById("options");
@@ -121,7 +122,27 @@
             btn.onclick = () => handleChoice(a, q, btn);
             optionsDiv.appendChild(btn);
           });
+        } else if (mode === "flashcard") {
+          checkMode = 2;
+          questionDiv.textContent = "";
+          optionsDiv.innerHTML = "";
+          nextBtn.style.display = "inline-block";
+          const card = document.createElement("div");
+          card.className = "flashcard";
+          card.innerHTML = `
+            <div class="front"><b>${q.en}</b></div>
+            <div class="back">${q.vi} (${q.cat || ""})</div>
+            `;
+          card.onclick = () => card.classList.toggle("flipped");
+          optionsDiv.appendChild(card);
+
+          const speakBtn = document.createElement("button");
+          speakBtn.className = "option-btn";
+          speakBtn.textContent = "Nghe phát âm";
+          speakBtn.onclick = () => speakText(q.en);
+          optionsDiv.appendChild(speakBtn);
         } else {
+          checkMode = 1;
           questionDiv.textContent = `Hãy nhập tiếng Anh cho: ${q.vi}  — (${
             q.cat || ""
           })`;
@@ -149,6 +170,11 @@
         questionDiv.classList.remove("pop");
         void questionDiv.offsetWidth;
         questionDiv.classList.add("pop");
+      }
+      function speakText(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        speechSynthesis.speak(utterance);
       }
 
       function handleChoice(choice, q, btn) {
@@ -193,17 +219,21 @@
       function nextQuestion() {
         currentIndex++;
         if (currentIndex >= words.length) {
-          const total = words.length;
-          const scorePerQuestion = 10 / total;
-          const finalScore = (correctCount * scorePerQuestion).toFixed(2);
-
-          questionDiv.textContent = "Hết câu hỏi!";
-          optionsDiv.innerHTML = "";
-          resultDiv.innerHTML = `
+          if (checkMode == 1) {
+            const total = words.length;
+            const scorePerQuestion = 10 / total;
+            const finalScore = (correctCount * scorePerQuestion).toFixed(2);
+            questionDiv.textContent = "Hết câu hỏi!";
+            optionsDiv.innerHTML = "";
+            resultDiv.innerHTML = `
             Bạn trả lời đúng <b>${correctCount} / ${total}câu </b><br/>
             Điểm số: ${finalScore} / 10
           `;
-          nextBtn.style.display = "none";
+            nextBtn.style.display = "none";
+          } else {
+            questionDiv.textContent = "Hết câu hỏi!";
+            nextBtn.style.display = "none";
+          }
         } else {
           showQuestion();
         }

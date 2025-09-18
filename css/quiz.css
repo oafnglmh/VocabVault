@@ -305,3 +305,53 @@ select {
     font-size: 1.8rem;
   }
 }
+.flashcard {
+  width: 280px;
+  height: 180px;
+  margin: 20px auto;
+  perspective: 1200px;
+  cursor: pointer;
+  position: relative;
+}
+
+.flashcard .front,
+.flashcard .back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 18px;
+  transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.flashcard .front {
+  background: linear-gradient(135deg, #ffe7f0, #fff6e8);
+  color: #333;
+  border: 2px solid #ffd5dc;
+}
+
+.flashcard .back {
+  background: linear-gradient(135deg, #d6f5ff, #f3f9ff);
+  color: #024;
+  border: 2px solid #b5e0f2;
+  transform: rotateY(180deg);
+}
+
+.flashcard.flipped .front {
+  transform: rotateY(180deg);
+}
+.flashcard.flipped .back {
+  transform: rotateY(0deg);
+}
+
+.flashcard:hover {
+  transform: scale(1.03);
+  transition: transform 0.25s ease;
+}

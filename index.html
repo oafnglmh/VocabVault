@@ -77,7 +77,10 @@
                 (item, idx) => `
               <li>
                 <span><b>${item.en}</b> – ${item.vi}</span>
-                <button class="delete-btn" onclick="deleteWord('${cat}', ${idx})">Xóa</button>
+                <div>
+                  <button class="delete-btn" onclick="deleteWord('${cat}', ${idx})">Xóa</button>
+                  <button class="delete-btn" onclick="speakText('${item.en}')">🔊</button>  
+                </div>
               </li>`
               )
               .join("")}
@@ -105,7 +108,7 @@
           saveData();
           enInput.value = "";
           viInput.value = "";
-          showMsg("Đã lưu từ vựng! 🎉");
+          showMsg("Đã lưu từ vựng! ");
           render();
         }
       }
@@ -115,6 +118,12 @@
         if (vocab[cat].length === 0) delete vocab[cat];
         saveData();
         render();
+      }
+
+      function speakText(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        speechSynthesis.speak(utterance);
       }
 
       function showMsg(text) {
