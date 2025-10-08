@@ -41,7 +41,23 @@
       <div id="message" class="msg">Đã lưu từ vựng!</div>
       <div class="stats" id="stats">Tổng số từ: 0</div>
       <div id="categories"></div>
-
+      <hr />
+<h2>Grammar Manager</h2>
+<div class="form">
+  <input type="text" id="grammarTitle" placeholder="Grammar title..." />
+  <textarea id="grammarDesc" placeholder="Description / Rules..."></textarea>
+  <select id="grammarCategorySelect">
+    <option value="Tenses">Tenses</option>
+    <option value="Conditionals">Conditionals</option>
+    <option value="Modal Verbs">Modal Verbs</option>
+    <option value="Passive Voice">Passive Voice</option>
+    <option value="Reported Speech">Reported Speech</option>
+    <option value="Custom">Custom</option>
+  </select>
+  <button onclick="addGrammar()">Lưu Grammar</button>
+</div>
+<div id="grammarMessage" class="msg">Đã lưu ngữ pháp!</div>
+<div id="grammarCategories"></div>
       <hr />
       <h2>Kiểm tra từ vựng</h2>
       <select id="quizCategory">
@@ -146,6 +162,69 @@
         localStorage.setItem("quizCategory", cat);
         window.location.href = "quiz.html";
       }
+      let grammar = JSON.parse(localStorage.getItem("grammar")) || {};
+
+function saveGrammarData() {
+  localStorage.setItem("grammar", JSON.stringify(grammar));
+}
+
+function renderGrammar() {
+  const grammarDiv = document.getElementById("grammarCategories");
+  grammarDiv.innerHTML = "";
+
+  for (const cat in grammar) {
+    const catDiv = document.createElement("div");
+    catDiv.className = "category";
+    catDiv.innerHTML = `
+      <h3 onclick="toggleList(this)">
+        ${cat} <span>(${grammar[cat].length})</span>
+      </h3>
+      <ul>
+        ${grammar[cat]
+          .map(
+            (item, idx) => `
+          <li>
+            <b>${item.title}</b>: ${item.desc}
+            <button class="delete-btn" onclick="deleteGrammar('${cat}', ${idx})">Xóa</button>
+          </li>`
+          )
+          .join("")}
+      </ul>
+    `;
+    grammarDiv.appendChild(catDiv);
+  }
+}
+
+function addGrammar() {
+  const titleInput = document.getElementById("grammarTitle").value.trim();
+  const descInput = document.getElementById("grammarDesc").value.trim();
+  const category = document.getElementById("grammarCategorySelect").value;
+
+  if (titleInput && descInput) {
+    if (!grammar[category]) grammar[category] = [];
+    grammar[category].push({ title: titleInput, desc: descInput });
+    saveGrammarData();
+    document.getElementById("grammarTitle").value = "";
+    document.getElementById("grammarDesc").value = "";
+    showGrammarMsg("Đã lưu ngữ pháp!");
+    renderGrammar();
+  }
+}
+
+function deleteGrammar(cat, index) {
+  grammar[cat].splice(index, 1);
+  if (grammar[cat].length === 0) delete grammar[cat];
+  saveGrammarData();
+  renderGrammar();
+}
+
+function showGrammarMsg(text) {
+  const msg = document.getElementById("grammarMessage");
+  msg.textContent = text;
+  msg.classList.add("show");
+  setTimeout(() => msg.classList.remove("show"), 1500);
+}
+renderGrammar();
 
       render();
     </script>
