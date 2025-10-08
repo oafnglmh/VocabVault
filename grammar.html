@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Grammar Notes</title>
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <link rel="stylesheet" href="css/index.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Grammar Notes</h1>
+
+      <div class="form">
+        <input type="text" id="grammarTitle" placeholder="Grammar title..." />
+        <textarea
+          style="display: none"
+          id="grammarContent"
+          placeholder="Write your grammar note..."
+        ></textarea>
+        <button onclick="addGrammar()">Lưu</button>
+      </div>
+
+      <div id="message" class="msg">Đã lưu ghi chú!</div>
+      <div class="stats" id="grammarStats">Tổng số bài: 0</div>
+      <div id="grammarList"></div>
+    </div>
+
+    <div id="grammarModal" class="popup">
+      <div class="popup-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <textarea id="modalContent" class="tara"></textarea>
+        <button onclick="saveEdit()">Lưu chỉnh sửa</button>
+      </div>
+    </div>
+
+    <script src="js/grammar.js"></script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vocabulary Manager</title>
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <link rel="stylesheet" href="css/index.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Vocabulary Manager</h1>
+
+      <div class="form">
+        <input type="text" id="wordInput" placeholder="English word..." />
+        <input
+          type="text"
+          id="meaningInput"
+          placeholder="Vietnamese meaning..."
+        />
+        <select id="categorySelect"></select>
+        <button onclick="addWord()">Lưu</button>
+        <button onclick="addCategory()">+ Category</button>
+      </div>
+
+      <div id="message" class="msg">Đã lưu từ vựng!</div>
+      <div class="stats" id="stats">Tổng số từ: 0</div>
+      <div id="categories"></div>
+    </div>
+
+    <script src="js/vocab.js"></script>
+  </body>
+</html>
