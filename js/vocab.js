@@ -102,6 +102,11 @@ function speakText(text) {
   u.lang = "en-US";
   speechSynthesis.speak(u);
 }
+function goToQuiz() {
+  const cat = document.getElementById("quizCategory").value;
+  localStorage.setItem("quizCategory", cat);
+  window.location.href = "quiz.html";
+}
 
 function toggleList(h3) {
   const ul = h3.nextElementSibling;
